@@ -1,1 +1,78 @@
-![https://ci.appveyor.com/api/projects/status/github/igromanru/SoT-SDK-compilable?branch=master&svg=true](https://ci.appveyor.com/api/projects/status/github/igromanru/SoT-SDK-compilable?branch=master&svg=true)
+You need to fix SoT_Basics.hpp
+```cpp
+class FString : public TArray<wchar_t>
+{
+public:
+	inline FString()
+	{
+	};
+
+	FString(const wchar_t* other)
+	{
+		Max = Count = *other ? static_cast<int32_t>(std::wcslen(other)) + 1 : 0;
+
+		if (Count)
+		{
+			Data = const_cast<wchar_t*>(other);
+		}
+	};
+
+	inline bool IsValid() const
+	{
+		return Data != nullptr;
+	}
+
+	inline const wchar_t* c_str() const
+	{
+		return Data;
+	}
+
+	std::string ToString() const
+	{
+		const auto length = std::wcslen(Data);
+
+		std::string str(length, '\0');
+
+		std::use_facet<std::ctype<wchar_t>>(std::locale()).narrow(Data, Data + length, '?', &str[0]);
+
+		return str;
+	}
+};
+
+```
+
+To:
+
+```cpp
+class FString : public TArray<wchar_t>
+{
+public:
+	inline FString()
+	{
+	};
+
+	FString(const wchar_t* other)
+	{
+		Max = Count = *other ? static_cast<int32_t>(std::wcslen(other)) + 1 : 0;
+
+		if (Count)
+		{
+			Data = const_cast<wchar_t*>(other);
+		}
+	};
+
+	inline bool IsValid() const
+	{
+		return Data != nullptr;
+	}
+
+	inline const wchar_t* c_str() const
+	{
+		if (Data)
+			return Data;
+		return L"";
+	}
+};
+
+
+```
